@@ -1,0 +1,9 @@
+datasets/data_publish_v2/dan_handheld2
+datasets/data_publish_v2/hang_bag_normal1
+datasets/data_publish_v2/ruixuan_handheld2
+datasets/data_publish_v2/hang_leg_new2
+datasets/data_publish_v2/ma_body1
+datasets/data_publish_v2/ma_handheld1
+datasets/data_publish_v2/hang_bag_normal2
+datasets/data_publish_v2/zhicheng_bag1
+datasets/data_publish_v2/ma_bag_low2

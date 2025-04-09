@@ -1,0 +1,76 @@
+{
+    "dataset": "OIOD_tango",
+    "lr": 1e-3,
+    "num_layers": 6,
+    "lr_finder": false,
+    "num_time_steps": 2,
+    "scheduler_s": 0,
+    "scheduler_e": 1,
+    "scheduler_mode": "linear",
+    "ema_decay": 0.99,
+    "batch_size": 32,
+    "window_size": 512,
+    "pin_memory": true,
+    "shuffle": true,
+    "stride": 13,
+    "base_weight_path": "",
+    "pre_augmentation": {
+        "all_direction": true,
+        "mode": "XY"
+    },
+    "augmentation": {
+        "rotationNoise": {
+            "probability": 0.0,
+            "mode": "wabble",
+            "label_transform": false,
+            "degree": 3
+        },
+        "gaussianNoise": {
+            "probability": 0.0,
+            "accNoise": 0.01,
+            "gyrNoise": 0.01,
+            "magNoise": 0.003385865412269034
+        },
+        "scaleNoise": {
+            "probability": 0.0,
+            "accNoise": 0.2,
+            "gyrNoise": 0.2,
+            "magNoise": 0.1
+        },
+        "shiftNoise": {
+            "probability": 0.0,
+            "accNoise": 0.1,
+            "gyrNoise": 0.1,
+            "magNoise": 0.03
+        },
+        "axisMasking": {
+            "probability": 0.0,
+            "max_channel": 2
+        },
+        "speedMasking": {
+            "probability": 0.0,
+            "threshold": 0.0
+        }
+    },
+    "loss": {
+        "loss_hubber": 0.0,
+        "loss_mse": 1.0,
+        "loss_pearson": 0.0,
+        "loss_simclr": 0.0,
+        "loss_acceleration": 0.0,
+        "naive_distance_error": 0.0,
+        "naive_distance_error_X": 0.0,
+        "naive_distance_error_Y": 0.0,
+        "naive_distance_error_Z": 0.0,
+        "loss_velocity": 0.0,
+        "loss_position": 0.0,
+        "restoration_regularization": 0.0,
+        "loss_l1": 1.0,
+        "loss_l2": 1.0,
+        "loss_aux": 1.0
+    },
+    "gradient_clip_val": 1.0,
+    "gradient_clip_algorithm": "norm",
+    "limit_test_batches": null,
+    "comment": ""
+}
