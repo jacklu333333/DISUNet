@@ -6,21 +6,23 @@
 ### Training
 1. Direct training without overwrite the config from `config.json` file
 ```bash
-python trainScript.py -d [name_of_datasets] -b [model_weight]
+python trainScript.py 
 ```
+
 2. overwitte the config in `config.json` file with `[name_of_datasets]` as the target datasets, and `[model_weight]` as the starting model weight.
 ```bash
 python trainScript.py -d [name_of_datasets] -b [model_weight]
 ```
 
-> [name_of_datasets] can be ADVIO, RoNIN, RIDI, ODOD, OIOD_tango, where the OIOD is the one with only VICON label
+> [name_of_datasets] can be ADVIO, RoNIN, RIDI, OIOD(OxIOD), OIOD_tango (OxIOD tango), where the OIOD is the one with only VICON label.
+> [model_weight] should be the path to the weight directory.
 
 ### Testing
 
-1. Download the weight from authors.
+1. Download the weight from authors. **Please install the gdown in advance, or you may download it direct from the [website](https://drive.google.com/file/d/1nz5rLhDdMe4x0pHpOBPIikZcsC25VMEL/view?usp=sharing)**
 
 ```bash
-
+gdown 1nz5rLhDdMe4x0pHpOBPIikZcsC25VMEL
 ```
 
 2. Direct testinig from the config file without overwrite the config in the `config.json` file. **Notice: If the `base_model_weight` parameter is `""` then the testing will select the baseline testing to generate the logs for baseline**  
@@ -34,7 +36,8 @@ python testScript.py
 ```bash
 python testScript.py -d [name_of_datasets] -b [model_weight]
 ```
-> [name_of_datasets] can be ADVIO, RoNIN, RIDI, ODOD, OIOD_tango, where the OIOD is the one with only VICON label
+> [name_of_datasets] can be ADVIO, RoNIN, RIDI, OIOD(OxIOD), OIOD_tango (OxIOD tango), where the OIOD is the one with only VICON label.
+> > [model_weight] should be the path to the weight directory.
 
 ### Environment Setup
 
