@@ -112,4 +112,6 @@ if __name__ == "__main__":
             cl.Style.reset,
         )
         trainer.test(model, dm)
+    if int(trainer.global_rank) == 0:
+        os.system(f"cp diffusion_test_{socket.gethostname()}.log {logger.log_dir}")
     print(cl.Fore.green + "Complete !" + cl.Style.reset)

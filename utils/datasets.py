@@ -1058,7 +1058,7 @@ class RIDIDataset(mDataset):
     def read_list(self, file):
         with open(file, "r") as f:
             files = f.readlines()
-            files = [self.root.joinpath(f.strip()) for f in files]
+            files = [self.root.joinpath("datasets/data_publish_v2/" + f.strip()) for f in files]
         return files
 
     def load_files(self):

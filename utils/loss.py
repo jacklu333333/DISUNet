@@ -17,14 +17,14 @@ class PearsonMetric(nn.Module):
         self.esp = 1e-8
 
     def forward(self, x, y):
-        x_temp = x.sum(dim=-1) 
-        y_temp = y.sum(dim=-1) 
+        x_temp = x.sum(dim=-1)
+        y_temp = y.sum(dim=-1)
 
         x_temp = rearrange(x_temp, "b c -> c b")
         y_temp = rearrange(y_temp, "b c -> c b")
 
-        vx = x_temp - x_temp.mean(dim=-1, keepdim=True)  
-        vy = y_temp - y_temp.mean(dim=-1, keepdim=True)  
+        vx = x_temp - x_temp.mean(dim=-1, keepdim=True)
+        vy = y_temp - y_temp.mean(dim=-1, keepdim=True)
 
         if (vx == 0).all():
             print(cl.Fore.yellow, "all the vx are zeros", cl.Style.reset)
@@ -36,7 +36,6 @@ class PearsonMetric(nn.Module):
             print(cl.Fore.yellow, "x is not finite", cl.Style.reset)
         if not torch.isfinite(y).all():
             print(cl.Fore.yellow, "y is not finite", cl.Style.reset)
-
 
         index = vx == 0
         vx[index] = vx[index] + self.esp
@@ -58,7 +57,9 @@ class PearsonMetric(nn.Module):
         )
 
         assert torch.isfinite(loss).all()
-        return loss.mean()
+        return {
+            "mean": loss.mean(),
+        }
 
 
 class PearsonMetric_acc_X(PearsonMetric):
@@ -141,7 +142,9 @@ class PearsonMetric_acc_Norm(PearsonMetric):
         )
 
         assert torch.isfinite(loss).all()
-        return loss.mean()
+        return {
+            "mean": loss.mean(),
+        }
 
 
 class PearsonMetric_gyr_X(PearsonMetric):
@@ -188,7 +191,7 @@ class PearsonMetric_gyr_Norm(PearsonMetric):
         x_temp = x[:, 3:].sum(dim=-1).norm(dim=-1, keepdim=True)
         y_temp = y[:, 3:].sum(dim=-1).norm(dim=-1, keepdim=True)
 
-        x_temp = rearrange(x_temp, "b c -> c b")  
+        x_temp = rearrange(x_temp, "b c -> c b")
         y_temp = rearrange(y_temp, "b c -> c b")
 
         vx = x_temp - x_temp.mean(dim=-1, keepdim=True)
@@ -204,7 +207,6 @@ class PearsonMetric_gyr_Norm(PearsonMetric):
             print(cl.Fore.yellow, "x is not finite", cl.Style.reset)
         if not torch.isfinite(y).all():
             print(cl.Fore.yellow, "y is not finite", cl.Style.reset)
-
 
         index = vx == 0
         vx[index] = vx[index] + self.esp
@@ -225,7 +227,9 @@ class PearsonMetric_gyr_Norm(PearsonMetric):
         )
 
         assert torch.isfinite(loss).all()
-        return loss.mean()
+        return {
+            "mean": loss.mean(),
+        }
 
 
 class CosSimMetric(nn.Module):
@@ -235,7 +239,10 @@ class CosSimMetric(nn.Module):
 
     def forward(self, x, y):
         loss = self.loss(x, y)
-        return loss.mean()
+        return {
+            "mean": loss.mean(),
+            "std": loss.std(),
+        }
 
 
 class CosSimMetric_acc_X(CosSimMetric):
@@ -243,8 +250,9 @@ class CosSimMetric_acc_X(CosSimMetric):
         super(CosSimMetric_acc_X, self).__init__(margin, dim)
 
     def forward(self, x, y):
-        loss = self.loss(x[:, 0:1], y[:, 0:1])
-        return loss.mean()
+        # loss = self.loss(x[:, 0:1], y[:, 0:1])
+        # return loss.mean()
+        return super(CosSimMetric_acc_X, self).forward(x[:, 0:1], y[:, 0:1])
 
 
 class CosSimMetric_acc_Y(CosSimMetric):
@@ -252,8 +260,9 @@ class CosSimMetric_acc_Y(CosSimMetric):
         super(CosSimMetric_acc_Y, self).__init__(margin, dim)
 
     def forward(self, x, y):
-        loss = self.loss(x[:, 1:2], y[:, 1:2])
-        return loss.mean()
+        # loss = self.loss(x[:, 1:2], y[:, 1:2])
+        # return loss.mean()
+        return super(CosSimMetric_acc_Y, self).forward(x[:, 1:2], y[:, 1:2])
 
 
 class CosSimMetric_acc_Z(CosSimMetric):
@@ -261,9 +270,9 @@ class CosSimMetric_acc_Z(CosSimMetric):
         super(CosSimMetric_acc_Z, self).__init__(margin, dim)
 
     def forward(self, x, y):
-        loss = self.loss(x[:, 2:3], y[:, 2:3])
-        return loss.mean()
-
+        # loss = self.loss(x[:, 2:3], y[:, 2:3])
+        # return loss.mean()
+        return super(CosSimMetric_acc_Z, self).forward(x[:, 2:3], y[:, 2:3])
 
 
 class CosSimMetric_acc_Norm(CosSimMetric):
@@ -271,10 +280,13 @@ class CosSimMetric_acc_Norm(CosSimMetric):
         super(CosSimMetric_acc_Norm, self).__init__(margin, dim)
 
     def forward(self, x, y):
-        loss = self.loss(
+        # loss = self.loss(
+        #     x[:, :3].norm(dim=1, keepdim=True), y[:, :3].norm(dim=1, keepdim=True)
+        # )
+        # return loss.mean()
+        return super(CosSimMetric_acc_Norm, self).forward(
             x[:, :3].norm(dim=1, keepdim=True), y[:, :3].norm(dim=1, keepdim=True)
         )
-        return loss.mean()
 
 
 class CosSimMetric_acc(CosSimMetric):
@@ -282,8 +294,9 @@ class CosSimMetric_acc(CosSimMetric):
         super(CosSimMetric_acc, self).__init__(margin, dim)
 
     def forward(self, x, y):
-        loss = self.loss(x[:, :3], y[:, :3])
-        return loss.mean()
+        # loss = self.loss(x[:, :3], y[:, :3])
+        # return loss.mean()
+        return super(CosSimMetric_acc, self).forward(x[:, :3], y[:, :3])
 
 
 class CosSimMetric_gyr_X(CosSimMetric):
@@ -291,8 +304,9 @@ class CosSimMetric_gyr_X(CosSimMetric):
         super(CosSimMetric_gyr_X, self).__init__(margin, dim)
 
     def forward(self, x, y):
-        loss = self.loss(x[:, 3:4], y[:, 3:4])
-        return loss.mean()
+        # loss = self.loss(x[:, 3:4], y[:, 3:4])
+        # return loss.mean()
+        return super(CosSimMetric_gyr_X, self).forward(x[:, 3:4], y[:, 3:4])
 
 
 class CosSimMetric_gyr_Y(CosSimMetric):
@@ -300,8 +314,9 @@ class CosSimMetric_gyr_Y(CosSimMetric):
         super(CosSimMetric_gyr_Y, self).__init__(margin, dim)
 
     def forward(self, x, y):
-        loss = self.loss(x[:, 4:5], y[:, 4:5])
-        return loss.mean()
+        # loss = self.loss(x[:, 4:5], y[:, 4:5])
+        # return loss.mean()
+        return super(CosSimMetric_gyr_Y, self).forward(x[:, 4:5], y[:, 4:5])
 
 
 class CosSimMetric_gyr_Z(CosSimMetric):
@@ -309,8 +324,9 @@ class CosSimMetric_gyr_Z(CosSimMetric):
         super(CosSimMetric_gyr_Z, self).__init__(margin, dim)
 
     def forward(self, x, y):
-        loss = self.loss(x[:, 5:6], y[:, 5:6])
-        return loss.mean()
+        # loss = self.loss(x[:, 5:6], y[:, 5:6])
+        # return loss.mean()
+        return super(CosSimMetric_gyr_Z, self).forward(x[:, 5:6], y[:, 5:6])
 
 
 class CosSimMetric_gyr_Norm(CosSimMetric):
@@ -318,10 +334,13 @@ class CosSimMetric_gyr_Norm(CosSimMetric):
         super(CosSimMetric_gyr_Norm, self).__init__(margin, dim)
 
     def forward(self, x, y):
-        loss = self.loss(
+        # loss = self.loss(
+        #     x[:, 3:].norm(dim=1, keepdim=True), y[:, 3:].norm(dim=1, keepdim=True)
+        # )
+        # return loss.mean()
+        return super(CosSimMetric_gyr_Norm, self).forward(
             x[:, 3:].norm(dim=1, keepdim=True), y[:, 3:].norm(dim=1, keepdim=True)
         )
-        return loss.mean()
 
 
 class CosSimMetric_gyr(CosSimMetric):
@@ -329,8 +348,9 @@ class CosSimMetric_gyr(CosSimMetric):
         super(CosSimMetric_gyr, self).__init__(margin, dim)
 
     def forward(self, x, y):
-        loss = self.loss(x[:, 3:], y[:, 3:])
-        return loss.mean()
+        # loss = self.loss(x[:, 3:], y[:, 3:])
+        # return loss.mean()
+        return super(CosSimMetric_gyr, self).forward(x[:, 3:], y[:, 3:])
 
 
 class PearsonLoss(nn.Module):
@@ -342,9 +362,9 @@ class PearsonLoss(nn.Module):
         self.metric_norm = PearsonMetric_acc_Norm()
 
     def forward(self, x, y):
-        loss_x = 1 - self.metric_x(x, y)
-        loss_y = 1 - self.metric_y(x, y)
-        loss_z = 1 - self.metric_z(x, y)
+        loss_x = 1 - self.metric_x(x, y)["mean"]
+        loss_y = 1 - self.metric_y(x, y)["mean"]
+        loss_z = 1 - self.metric_z(x, y)["mean"]
         loss = loss_x + loss_y + loss_z
         return loss
 
@@ -358,9 +378,9 @@ class simclr_loss(nn.Module):
         self.metric_norm = CosSimMetric_acc_Norm()
 
     def forward(self, x, y):
-        loss_x = 1 - self.metric_x(x, y)
-        loss_y = 1 - self.metric_y(x, y)
-        loss_z = 1 - self.metric_z(x, y)
+        loss_x = 1 - self.metric_x(x, y)["mean"]
+        loss_y = 1 - self.metric_y(x, y)["mean"]
+        loss_z = 1 - self.metric_z(x, y)["mean"]
         loss = loss_x + loss_y + loss_z
         return loss
 
@@ -426,10 +446,15 @@ class NaiveDistanceError(nn.Module):
         self.rescale = rescale
 
     def forward(self, x, y):
-        loss = (x.sum(dim=-1).sum(dim=-1) - y.sum(dim=-1).sum(dim=-1)).norm(
-            dim=-1
-        ) * 0.01**2
-        return loss.mean()
+        loss = (
+            0.5
+            * (x.cumsum(dim=-1).sum(dim=-1) - y.cumsum(dim=-1).sum(dim=-1)).norm(dim=-1)
+            * 0.01**2
+        ) / 5.12
+        return {
+            "mean": loss.mean(),
+            "std": loss.std(),
+        }
 
 
 class NaiveDistanceError_X(NaiveDistanceError):
@@ -450,12 +475,61 @@ class NaiveDistanceError_Y(NaiveDistanceError):
         return loss
 
 
+class NaiveDistanceError_XY(NaiveDistanceError):
+    def __init__(self):
+        super(NaiveDistanceError_XY, self).__init__()
+
+    def forward(self, x, y):
+        loss = super(NaiveDistanceError_XY, self).forward(x[:, 0:2], y[:, 0:2])
+        return loss
+
+
 class NaiveDistanceError_Z(NaiveDistanceError):
     def __init__(self):
         super(NaiveDistanceError_Z, self).__init__()
 
     def forward(self, x, y):
         loss = super(NaiveDistanceError_Z, self).forward(x[:, 2:3], y[:, 2:3])
+        return loss
+
+
+class NaiveAngularError(nn.Module):
+    def __init__(self, rescale=1):
+        super(NaiveAngularError, self).__init__()
+        self.rescale = rescale
+
+    def forward(self, x, y):
+        loss = (x.sum(dim=-1) - y.sum(dim=-1)).norm(dim=-1) * 0.01 / 5.12
+        return {
+            "mean": loss.mean(),
+            "std": loss.std(),
+        }
+
+
+class NaiveAngularError_X(NaiveAngularError):
+    def __init__(self):
+        super(NaiveAngularError_X, self).__init__()
+
+    def forward(self, x, y):
+        loss = super(NaiveAngularError_X, self).forward(x[:, 3:4], y[:, 3:4])
+        return loss
+
+
+class NaiveAngularError_Y(NaiveAngularError):
+    def __init__(self):
+        super(NaiveAngularError_Y, self).__init__()
+
+    def forward(self, x, y):
+        loss = super(NaiveAngularError_Y, self).forward(x[:, 4:5], y[:, 4:5])
+        return loss
+
+
+class NaiveAngularError_Z(NaiveAngularError):
+    def __init__(self):
+        super(NaiveAngularError_Z, self).__init__()
+
+    def forward(self, x, y):
+        loss = super(NaiveAngularError_Z, self).forward(x[:, 5:6], y[:, 5:6])
         return loss
 
 
@@ -535,17 +609,16 @@ class myspecialLoss(nn.Module):
             x,
             y,
         )
-        naive_distance_error = self.naive_distance_error(x, y)
-        navie_distance_error_X = self.naive_distance_error_X(x, y)
-        navie_distance_error_Y = self.naive_distance_error_Y(x, y)
-        navie_distance_error_Z = self.naive_distance_error_Z(x, y)
+        naive_distance_error = self.naive_distance_error(x, y)["mean"]
+        navie_distance_error_X = self.naive_distance_error_X(x, y)["mean"]
+        navie_distance_error_Y = self.naive_distance_error_Y(x, y)["mean"]
+        navie_distance_error_Z = self.naive_distance_error_Z(x, y)["mean"]
 
         accelerationLoss = self.accerlation_loss(x, y)
         velocityLoss = self.velocity_loss(x, y)
         positionLoss = self.position_loss(x, y)
 
         restoration_regularization = restoration.square().mean()
-
 
         if len(self.history[mode]) == 0:
             self.history[mode].append(
@@ -618,7 +691,6 @@ class velocityError(nn.Module):
         super(velocityError, self).__init__()
 
         self.loss = nn.L1Loss()
-
 
     def forward(self, x, y):
         loss = x[:, :3].cumsum(dim=-1) - y[:, :3].cumsum(dim=-1)

@@ -14,7 +14,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from mixture_of_experts import HeirarchicalMoE, MoE
+
+# from mixture_of_experts import HeirarchicalMoE, MoE
 from tensorboard.backend.event_processing import event_accumulator
 from timm.utils import ModelEmaV3
 from torch.utils.tensorboard import SummaryWriter
@@ -313,11 +314,12 @@ class UNET(nn.Module):
     def _get_regularization_params(self):
         params = []
         for module in self.modules():
-            list_of_modules = list(module.children())[::-1]
-            for layer in list_of_modules:
-                params.extend([x.view(-1) for x in layer.parameters()])
-
-        return torch.cat(params)
+            if isinstance(
+                module, nn.Module
+            ):  # Ensure the module is a valid PyTorch module
+                for param in module.parameters():
+                    params.append(param.view(-1))
+        return torch.cat(params) if params else torch.tensor([])
 
     def initialize_weight_my_fucking_way(self, module):
         if isinstance(module, nn.Linear):
@@ -453,11 +455,12 @@ class TransformerPredictor(nn.Module):
     def _get_regularization_params(self):
         params = []
         for module in self.modules():
-            list_of_modules = list(module.children())[::-1]
-            for layer in list_of_modules:
-                params.extend([x.view(-1) for x in layer.parameters()])
-
-        return torch.cat(params)
+            if isinstance(
+                module, nn.Module
+            ):  # Ensure the module is a valid PyTorch module
+                for param in module.parameters():
+                    params.append(param.view(-1))
+        return torch.cat(params) if params else torch.tensor([])
 
 
 class Acc_Vel_Pos(nn.Module):
@@ -593,6 +596,11 @@ class DiffusionModelPL(pl.LightningModule):
             f"metric_acc_simVector_Y/{suffix}": CosSimMetric_acc_Y(),
             f"metric_acc_simVector_Z/{suffix}": CosSimMetric_acc_Z(),
             f"metric_acc_simVector_norm/{suffix}": CosSimMetric_acc_Norm(),
+            f"metric_naive_distance_error_X/{suffix}": NaiveDistanceError_X(),
+            f"metric_naive_distance_error_Y/{suffix}": NaiveDistanceError_Y(),
+            f"metric_naive_distance_error_Z/{suffix}": NaiveDistanceError_Z(),
+            f"metric_naive_distance_error_XY/{suffix}": NaiveDistanceError_XY(),
+            f"metric_naive_distance_error/{suffix}": NaiveDistanceError(),
             f"metric_gyr_pearson_X/{suffix}": PearsonMetric_gyr_X(),
             f"metric_gyr_pearson_Y/{suffix}": PearsonMetric_gyr_Y(),
             f"metric_gyr_pearson_Z/{suffix}": PearsonMetric_gyr_Z(),
@@ -602,6 +610,10 @@ class DiffusionModelPL(pl.LightningModule):
             f"metric_gyr_simVector_Y/{suffix}": CosSimMetric_gyr_Y(),
             f"metric_gyr_simVector_Z/{suffix}": CosSimMetric_gyr_Z(),
             f"metric_gyr_simVector_norm/{suffix}": CosSimMetric_gyr_Norm(),
+            f"metric_naive_Angular_error_X/{suffix}": NaiveAngularError_X(),
+            f"metric_naive_Angular_error_Y/{suffix}": NaiveAngularError_Y(),
+            f"metric_naive_Angular_error_Z/{suffix}": NaiveAngularError_Z(),
+            f"metric_naive_Angular_error/{suffix}": NaiveAngularError(),
         }
         for key, metric in metrics.items():
             self.add_module(key, metric)
@@ -684,7 +696,10 @@ class DiffusionModelPL(pl.LightningModule):
 
         metrics = {}
         for key, metric in self.metrics["test"].items():
-            metrics[key] = metric(estimate, x_pad)
+            # metrics[key] = metric(estimate, x_pad)
+            ms = metric(estimate, x_pad)
+            for k, v in ms.items():
+                metrics[f"{key}_{k}"] = v
 
         self.log_dict(
             metrics,
@@ -815,10 +830,12 @@ class DiffusionModelPL(pl.LightningModule):
     def _get_regularization_params(self):
         params = []
         for module in self.modules():
-            list_of_modules = list(module.children())[::-1]
-            for layer in list_of_modules:
-                params.extend([x.view(-1) for x in layer.parameters()])
-        return torch.cat(params)
+            if isinstance(
+                module, nn.Module
+            ):  # Ensure the module is a valid PyTorch module
+                for param in module.parameters():
+                    params.append(param.view(-1))
+        return torch.cat(params) if params else torch.tensor([])
 
     def naive_forward(self, batch, mode):
         epsilon, x, dataL = batch
@@ -893,7 +910,10 @@ class DiffusionModelPL(pl.LightningModule):
         metrics = {}
         if mode in self.metrics.keys():
             for key, metric in self.metrics[mode].items():
-                metrics[key] = metric(output, target)
+                # metrics[key] = metric(output, target)
+                ms = metric(output, x_pad)
+                for k, m in ms.items():
+                    metrics[f"{key}_{k}"] = m
 
         self.log(
             f"noise_mse/{mode}",
@@ -1246,11 +1266,12 @@ class Discriminator(nn.Module):
     def _get_regularization_params(self):
         params = []
         for module in self.modules():
-            list_of_modules = list(module.children())[::-1]
-            for layer in list_of_modules:
-                if isinstance(layer, nn.Linear):
-                    params.extend([x.view(-1) for x in layer.parameters()])
-        return torch.cat(params)
+            if isinstance(
+                module, nn.Module
+            ):  # Ensure the module is a valid PyTorch module
+                for param in module.parameters():
+                    params.append(param.view(-1))
+        return torch.cat(params) if params else torch.tensor([])
 
 
 class CycleGAN(pl.LightningModule):
@@ -1479,6 +1500,11 @@ class baseDiffusionModule(pl.LightningModule):
             f"metric_acc_simVector_Y/{suffix}": CosSimMetric_acc_Y(),
             f"metric_acc_simVector_Z/{suffix}": CosSimMetric_acc_Z(),
             f"metric_acc_simVector_norm/{suffix}": CosSimMetric_acc_Norm(),
+            f"metric_naive_distance_error_X/{suffix}": NaiveDistanceError_X(),
+            f"metric_naive_distance_error_Y/{suffix}": NaiveDistanceError_Y(),
+            f"metric_naive_distance_error_Z/{suffix}": NaiveDistanceError_Z(),
+            f"metric_naive_distance_error_XY/{suffix}": NaiveDistanceError_XY(),
+            f"metric_naive_distance_error/{suffix}": NaiveDistanceError(),
             f"metric_gyr_pearson_X/{suffix}": PearsonMetric_gyr_X(),
             f"metric_gyr_pearson_Y/{suffix}": PearsonMetric_gyr_Y(),
             f"metric_gyr_pearson_Z/{suffix}": PearsonMetric_gyr_Z(),
@@ -1488,6 +1514,10 @@ class baseDiffusionModule(pl.LightningModule):
             f"metric_gyr_simVector_Y/{suffix}": CosSimMetric_gyr_Y(),
             f"metric_gyr_simVector_Z/{suffix}": CosSimMetric_gyr_Z(),
             f"metric_gyr_simVector_norm/{suffix}": CosSimMetric_gyr_Norm(),
+            f"metric_naive_Angular_error_X/{suffix}": NaiveAngularError_X(),
+            f"metric_naive_Angular_error_Y/{suffix}": NaiveAngularError_Y(),
+            f"metric_naive_Angular_error_Z/{suffix}": NaiveAngularError_Z(),
+            f"metric_naive_Angular_error/{suffix}": NaiveAngularError(),
         }
 
         for key, metric in metrics.items():

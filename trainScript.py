@@ -108,5 +108,9 @@ if __name__ == "__main__":
 
     trainer.fit(model, dm)
     trainer.test(model, dm, ckpt_path="best")
+    if int(trainer.global_rank) == 0:
+        os.system(
+            f"cp diffusion_{socket.gethostname()}.log {logger.log_dir}/diffusion_{socket.gethostname()}.log"
+        )
 
     print(cl.Fore.green + "Complete !" + cl.Style.reset)
