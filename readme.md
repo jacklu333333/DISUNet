@@ -16,6 +16,7 @@ python trainScript.py -d [name_of_datasets] -b [model_weight]
 
 > [name_of_datasets] can be ADVIO, RoNIN, RIDI, OIOD(OxIOD), OIOD_tango (OxIOD tango), where the OIOD is the one with only VICON label.
 > [model_weight] should be the path to the weight directory.
+> The default config.json file hyperparameter can be applied to all datasets with the same result of original paper.
 
 ### Testing
 <!-- 
